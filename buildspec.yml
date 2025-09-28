@@ -1,0 +1,40 @@
+# This file is used by AWS CodeBuild to build, test, and package your application.
+version: 0.2
+
+phases:
+  # Commands to run during the pre-build phase
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      # Log the Docker client into the Amazon ECR registry.
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      # Define variables for the repository URI and image tag.
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/my-crypto-app
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+  # Commands to run during the build phase
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      # Build the Docker image and tag it with the repository URI and 'latest'
+      - docker build -t $REPOSITORY_URI:latest .
+      # Also tag the image with the specific commit hash for versioning
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  # Commands to run during the post-build phase
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images to ECR...
+      # Push both the 'latest' and commit-specific tags to ECR
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file for ECS deployment...
+      # Create the imagedefinitions.json file, which tells ECS which image to deploy.
+      # The name 'crypto-app-container' must match the container name in your ECS Task Definition.
+      - printf '[{"name":"crypto-app-container","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
+
+# Define the build artifacts (output files)
+artifacts:
+  files:
+    - imagedefinitions.json
