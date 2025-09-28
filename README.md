@@ -1,4 +1,4 @@
-Simple & Scalable Crypto Price API
+# Simple & Scalable Crypto Price API
 A lightweight web application built with Python and Flask that serves cryptocurrency prices from the CoinGecko API. It is designed to be containerized with Docker and deployed on a scalable AWS infrastructure using ECS and ECR, complete with a CI/CD pipeline via CodeBuild.
 
 ✨ Features
