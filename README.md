@@ -13,6 +13,8 @@ requirements.txt: A list of Python dependencies.
 
 Dockerfile: Instructions to build a Docker image for the application.
 
+buildspec.yml: Build instructions for AWS CodeBuild, used for CI/CD.
+
 How to Run Locally
 1. Without Docker (Using a Virtual Environment)
 First, create and activate a virtual environment:
@@ -101,3 +103,34 @@ Networking: Choose your VPC and subnets. Ensure you have a security group that a
 Load Balancing (Optional but Recommended): You can create an Application Load Balancer (ALB) that distributes traffic across your tasks. The ALB's target group should use the /health endpoint for health checks.
 
 Once the service is running, ECS will pull your image from ECR and run it. If you configured a load balancer, you can access your application using the load balancer's DNS name.
+
+CI/CD with AWS CodePipeline and CodeBuild
+To automate the deployment process, you can set up a CI/CD pipeline using AWS services. The included buildspec.yml file is used by AWS CodeBuild to define the build process.
+
+buildspec.yml: This file contains a series of commands for building the Docker image, pushing it to ECR, and preparing an artifact for ECS deployment.
+
+AWS CodeCommit/GitHub: Store your source code in a Git repository. This will be the source stage for your pipeline.
+
+AWS CodePipeline: Create a new pipeline.
+
+Source Stage: Connect it to your repository (e.g., the main branch).
+
+Build Stage:
+
+Create a new CodeBuild project.
+
+Point it to your source code.
+
+CodeBuild will automatically detect and use the buildspec.yml file.
+
+Important: You must give the CodeBuild service role permissions to interact with ECR (e.g., ecr:GetAuthorizationToken, ecr:BatchCheckLayerAvailability, ecr:InitiateLayerUpload, ecr:UploadLayerPart, ecr:CompleteLayerUpload, ecr:PutImage).
+
+Deploy Stage:
+
+Choose Amazon ECS as the deployment provider.
+
+Select your ECS cluster and service.
+
+The Image definitions file will be the output artifact from the build stage (imagedefinitions.json).
+
+When you push new code to your repository, CodePipeline will automatically trigger, build the new Docker image, push it to ECR, and update your ECS service to deploy the new version.
