@@ -101,7 +101,7 @@ Recommendation: Use an Application Load Balancer (ALB) to distribute traffic. Co
 # ⚙️ Automated CI/CD Pipeline
 The buildspec.yml file enables automated deployments using AWS CodePipeline.
 
-Source: Connect CodePipeline to your code repository (e.g., GitHub, AWS CodeCommit).
+1.) Source: Connect CodePipeline to your code repository (e.g., GitHub, AWS CodeCommit). When you connect to a source like GitHub, CodePipeline automatically creates a webhook in your repository. This webhook is     what triggers the pipeline to run every time you git push new changes.
 
 1.) Build:
 
